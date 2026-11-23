@@ -755,7 +755,8 @@ function lock(on, label){ busy = on; ['png', 'vid'].forEach(id => $(id).disabled
 $('vid').addEventListener('click', async () => {
   if (!READY[tab] || busy) return;
   if (tab === 1) {   // 원본 MP4 인코더 (프레임 단위)
-    const d = doc(1), b = d.getElementById('seqMp4'); clearTimeout(seqLoop); try { win(1).claude = null; } catch(e){}   // 2편은 직접 저장하지 않고 완성본을 넘겨받아 '파일로 저장' 버튼으로 d.getElementById('mp4Res').value = String(scaleV()); lock(true, '인코딩 준비');
+    const d = doc(1), b = d.getElementById('seqMp4'); clearTimeout(seqLoop); try { win(1).claude = null; } catch(e){} d.getElementById('mp4Res').value = String(scaleV());   // 2편은 직접 저장하지 않고 완성본을 넘겨받아 '파일로 저장' 버튼으로
+    lock(true, '인코딩 준비');
     const ob = new MutationObserver(() => { const m = b.textContent.match(/(\d+)%/); if (m) { prog(+m[1] / 100); $('vid').querySelector('span').textContent = `인코딩 ${m[1]}%`; }
       if (/MP4 내보내기/.test(b.textContent)) { ob.disconnect(); prog(null); lock(false); const msg = d.getElementById('mp4Msg').textContent; if (/실패/.test(msg)) toast(msg); else if (playing) seq(true); } });
     ob.observe(b, {childList:true, characterData:true, subtree:true}); b.click(); grabModal(); return;
