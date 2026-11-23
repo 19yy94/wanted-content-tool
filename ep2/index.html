@@ -477,7 +477,7 @@ function buildBadges(){
   const P=num('pitch'),BH=P*num('bh'),FS=BH*num('tsize'),gap=num('gap');
   const {m,all}=kwLists();const R=rng(S.seed);
   ctx.font=`700 ${FS}px "Wanted Sans Variable",sans-serif`;
-  rows=[];let bag=[];const pool=all.filter(k=>!m.has(k)),seen=new Map(),NX=115,NY=P*11;
+  rows=[];CZ=null;let bag=[];const pool=all.filter(k=>!m.has(k)),seen=new Map(),NX=115,NY=P*11;
   for(let y=P*.5,ri=0;y<H-BH*.5;y+=P,ri++){
     const row={y,i:ri,list:[]};let x=-R()*P*4;
     while(x<W+P*2){
