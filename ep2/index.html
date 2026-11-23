@@ -827,6 +827,8 @@ $('seqMp4').onclick=async()=>{if(mp4Busy)return;const msg=t=>$('mp4Msg').textCon
     S.fc=null;S.lit=0;S.fi=null;S.running=false;S.now=0;for(const r of rows)for(const b of r.list){b.lostT=b.gainT=null;b.backNow=false}S.stable=$('seqRun').checked&&S.pose==='run';
     if(S.stable){const n=RUNSEQ.paths.length;S.f0=Math.round(num('phase0')*(n-1));msg('달리기 프레임 준비 중…');await new Promise(r=>setTimeout(r,20));buildSnaps();applySnap(S.f0)}
     S.fc=fitCam();
+    // 미리보기와 똑같이 준비 (줌인 하늘색 뱃지 배치 포함)
+    {const A=num('tA'),B=num('tB');for(const tt of [A+B,A+B*.7,A+B*.4,A+B*.15,A,0])seqFrame(tt,og,sc)}S.running=false;S.fi=null;for(const r of rows)for(const b of r.list){b.lostT=b.gainT=null;b.backNow=false}if(S.stable)applySnap(S.f0);
     const A=num('tA'),B=num('tB'),E=(S.stable?num('tRun'):1.5),T=A+B+E,N=Math.min(Math.round(6.62*fps),Math.round(T/num('speed')*fps));   // 영상은 6.62초로
     for(let i=0;i<N;i++){if(encErr)throw encErr;
       seqFrame(i/fps,og,sc);ctx.drawImage(oc,0,0,W,H);
