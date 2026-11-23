@@ -805,7 +805,8 @@ function endSeq(){cancelAnimationFrame(seqT);seqT=0;for(const r of rows){r.off=0
 function playSeq(onEnd){if(seqT){endSeq();return}
   S.fc=null;S.lit=0;S.fi=null;S.stable=$('seqRun').checked&&S.pose==='run';if(S.stable){const n=RUNSEQ.paths.length;S.f0=Math.round(num('phase0')*(n-1));buildSnaps();applySnap(S.f0)}S.fc=fitCam();{const A=num('tA'),B=num('tB');for(const tt of [A+B,A+B*.7,A+B*.4,A+B*.15,A,0])seqFrame(tt)}S.running=false;S.fi=null;for(const r of rows)for(const b of r.list){b.lostT=b.gainT=null;b.backNow=false}if(S.stable)applySnap(S.f0);const t0=performance.now();$('seqPlay').textContent='■ 정지';
   const PF=[];let lastNow=0;window.RTL=[];
-  const step=now=>{const a=performance.now();const more=seqFrame((now-t0)/1000);const js=performance.now()-a;if(lastNow)PF.push([(now-t0)/1000,now-lastNow,js,SPR.size]);lastNow=now;if(more)seqT=requestAnimationFrame(step);else{endSeq();showPerf(PF,window.RTL);window.RTL=null;onEnd&&onEnd()}};
+  const step=now=>{const a=performance.now();const tt=(now-t0)/1000,more=tt<6.62&&seqFrame(tt);   // 영상과 같이 6.62초에서 끊음
+  const js=performance.now()-a;if(lastNow)PF.push([(now-t0)/1000,now-lastNow,js,SPR.size]);lastNow=now;if(more)seqT=requestAnimationFrame(step);else{endSeq();showPerf(PF,window.RTL);window.RTL=null;onEnd&&onEnd()}};
   seqT=requestAnimationFrame(step)}
 function showPerf(PF){const el=$('perf');if(!el)return;const bins={};let ps=null;for(const [t,dt,js,sz] of PF){const k=(Math.floor(t*2)/2).toFixed(1);const o=bins[k]||(bins[k]={n:0,mx:0,js:0,slow:0,sp:0});o.n++;o.mx=Math.max(o.mx,dt);o.js=Math.max(o.js,js);if(dt>25)o.slow++;if(ps!=null&&sz>ps)o.sp+=sz-ps;ps=sz}
   el.textContent='t  간격ms JSms 느린 새글자\n'+Object.entries(bins).map(([k,o])=>k.padStart(4)+' '+String(Math.round(o.mx)).padStart(5)+' '+String(Math.round(o.js)).padStart(4)+' '+(o.slow+'/'+o.n).padStart(5)+' '+o.sp).join('\n')}

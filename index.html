@@ -509,7 +509,7 @@ function seq(on){ if (!READY[1]) return; clearTimeout(seqLoop); if (seqRunning()
 function watchSeq(){ new MutationObserver(() => { if (!seqRunning() && playing && tab === 1 && !busy) { clearTimeout(seqLoop); seqLoop = setTimeout(() => {
     if (!playing || tab !== 1) return;
     if (cyc() && jobs.length > 1) { sel = (sel + 1) % jobs.length; persist(); renderJobs(); renderContent(); applyJob(1, false); }
-    seq(true); }, 1400); } }).observe(seqBtn(), {childList:true, characterData:true, subtree:true}); }
+    seq(true); }, 0); } }).observe(seqBtn(), {childList:true, characterData:true, subtree:true}); }
 /* 3편: 질문이 바뀌면 칩도 따라감 */
 setInterval(() => { if (tab !== 2 || !READY[2] || !cyc()) return; const E = win(2).__ep3; if (E.S.qi < 0 || !QJOB.length) return; const k = QJOB[E.S.qi % QJOB.length];
   if (k !== sel) { sel = k; persist(); renderJobs(); renderContent(); } }, 300);
