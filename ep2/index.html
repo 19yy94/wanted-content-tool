@@ -466,13 +466,15 @@ function kwLists(){
 const ASC={};function ascPool(n,v){const k=n+'_'+v;if(!ASC[k]){const ch='@@0GG8L::;.',R=rng(n*31+v*7+1);let a='';for(let i=0;i<n;i++)a+=ch[(R()*ch.length)|0];ASC[k]=a}return ASC[k]}
 // text sprites: rasterise each word once, then drawImage (much faster than fillText per frame)
 const SPR=new Map();let SPRK='';const SK0=12;let ZS=1;
-function sprite(txt,color,font,fs,SK=SK0){const key=SK+'|'+font+'|'+color+'|'+txt;let sp=SPR.get(key);if(sp)return sp;if(SPR.size>1500)SPR.clear();
+function sprite(txt,color,font,fs,SK=SK0){const key=SK+'|'+font+'|'+color+'|'+txt;let sp=SPR.get(key);if(sp)return sp;if(SPR.size>2500)SPR.clear();
   const c=document.createElement('canvas'),g=c.getContext('2d');g.font=font.replace(/([\d.]+)px/,(m,v)=>(v*SK)+'px');
   const w=Math.ceil(g.measureText(txt).width)+4,h=Math.ceil(fs*SK*1.5);c.width=w;c.height=h;
   g.font=font.replace(/([\d.]+)px/,(m,v)=>(v*SK)+'px');g.fillStyle=color;g.textBaseline='middle';g.fillText(txt,2,h/2);
   sp={c,w:w/SK,h:h/SK,k:SK};SPR.set(key,sp);return sp}
 let DIRECT=false;try{document.fonts.addEventListener('loadingdone',()=>{SPR.clear();update()})}catch(e){}
-function drawTxt(g,txt,color,font,fs,x,cy){if(!DIRECT&&ZS*fs<(font.indexOf('Mono')>=0?11:7))return;if(DIRECT||ZS<=4||font.indexOf('Mono')>=0){g.textBaseline='middle';g.textAlign='left';g.font=font;g.fillStyle=color;g.fillText(txt,x,cy);return}const k=SK0,sp=sprite(txt,color,font,fs,k);g.drawImage(sp.c,x-2/k,cy-sp.h/2,sp.w,sp.h)}
+// 줌 중에 색이 조금씩 변해도 같은 글자 그림을 재사용 (색을 8단계로 묶음 → 매 프레임 새로 그리지 않음)
+const QC=new Map();function qCol(c){let r=QC.get(c);if(r)return r;if(typeof c!=='string'||c[0]!=='#'||c.length!==7)return c;const n=parseInt(c.slice(1),16),q=v=>Math.min(255,Math.round(v/8)*8);r='#'+[n>>16&255,n>>8&255,n&255].map(v=>q(v).toString(16).padStart(2,'0')).join('');if(QC.size>5000)QC.clear();QC.set(c,r);return r}
+function drawTxt(g,txt,color,font,fs,x,cy){if(!DIRECT&&ZS*fs<(font.indexOf('Mono')>=0?11:7))return;if(DIRECT||ZS<=6||font.indexOf('Mono')>=0){g.textBaseline='middle';g.textAlign='left';g.font=font;g.fillStyle=color;g.fillText(txt,x,cy);return}const k=SK0,sp=sprite(txt,qCol(color),font,fs,k);g.drawImage(sp.c,x-2/k,cy-sp.h/2,sp.w,sp.h)}
 function buildBadges(){
   const P=num('pitch'),BH=P*num('bh'),FS=BH*num('tsize'),gap=num('gap');
   const {m,all}=kwLists();const R=rng(S.seed);
