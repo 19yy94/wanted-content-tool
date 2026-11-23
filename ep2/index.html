@@ -513,17 +513,19 @@ let CZ=null;
 function buildCz(){const zc=num('sz'),C0=S.chest||[540,675],vw=W/zc,vh=H/zc,N=Math.round(num('czN')),vv=num('flowV'),BB=num('tB'),AA=num('tA');
   const {m}=kwLists(),ml=[...m];ctx.font=`700 ${rows[0]?rows[0].list[0].fs:6}px "Wanted Sans Variable",sans-serif`;const mw=ml.map(k=>ctx.measureText(k).width);
   const key=[zc,C0[0],C0[1],N,vv,BB,ml.join(),rows.length,S.seed,rows[0]&&rows[0].list.length].join('|');if(CZ&&CZ.key===key)return CZ;
-  // evaluate positions mid-closeup (rows slide in opposite directions)
-  const remM=vv*(AA*.4)+vv*BB/2,cand=[];
-  for(const r of rows){const off=(r.i%2?1:-1)*remM*(.75+.5*hash(r.i,77));for(const b of r.list){const ex=b.x+off+b.w/2,ey=b.y+b.h/2;
-    if(Math.abs(ex-C0[0])>vw*.46||Math.abs(ey-C0[1])>vh*.46)continue;const room=b.w-b.h*.9;const fit=ml.map((k,i)=>[k,mw[i]]).filter(x=>x[1]<=room+.5&&x[1]>=room*.72);if(!fit.length||b.circ)continue;
-    cand.push({b,ex,ey,fit,h:hash((b.x*7|0)+3,(b.y|0)+5)})}}
-  cand.sort((a,c)=>a.h-c.h);const pick=[],used=new Set();let rad=Math.sqrt(vw*vh/Math.max(1,N))*.85;
-  for(let pass=0;pass<6&&pick.length<N;pass++){for(const c of cand){if(pick.length>=N)break;if(pick.includes(c))continue;
-      if(pick.some(p=>(p.ex-c.ex)**2+((p.ey-c.ey)*1.15)**2<rad*rad))continue;const f=c.fit.filter(x=>!used.has(x[0]));if(!f.length)continue;
-      f.sort((a,d)=>d[1]-a[1]);c.dk=f[(c.h*f.length)|0]?f[(c.h*f.length)|0][0]:f[0][0];used.add(c.dk);pick.push(c)}rad*=.85}
+  // 줌인 구간 전체(시작·중간·끝)에서 고르게 보이도록: 가장 먼 곳부터 채우기
+  const TS=[0,.5,1].map(f=>vv*AA*(1-f)+vv*BB/2),cand=[];
+  for(const r of rows){const k=(r.i%2?1:-1)*(.75+.5*hash(r.i,77));for(const b of r.list){const P=TS.map(rm=>[b.x+k*rm+b.w/2,b.y+b.h/2]);
+    if(Math.abs(P[0][0]-C0[0])>vw/2-b.w/2-1||Math.abs(P[0][1]-C0[1])>vh*.46)continue;if(Math.abs(P[1][0]-C0[0])>vw*.5)continue;
+    const room=b.w-b.h*.9;const fit=ml.map((k,i)=>[k,mw[i]]).filter(x=>x[1]<=room+.5&&x[1]>=room*.72);if(!fit.length||b.circ)continue;
+    cand.push({b,P,fit,h:hash((b.x*7|0)+3,(b.y|0)+5)})}}
+  const pick=[],used=new Set(),dd=(a,c)=>{let m=1e9;for(let t=0;t<3;t++)m=Math.min(m,Math.hypot(a.P[t][0]-c.P[t][0],(a.P[t][1]-c.P[t][1])*1.15));return m};
+  while(pick.length<N){let best=null,bv=-1e9;for(const c of cand){if(pick.includes(c))continue;const f=c.fit.filter(x=>!used.has(x[0]));if(!f.length)continue;
+      if(pick.some(p=>p.b.nb&&p.b.nb.includes(c.b)))continue;
+      const v=pick.length?Math.min(...pick.map(p=>dd(p,c)))*(.92+.16*c.h):-Math.hypot(c.P[1][0]-C0[0],c.P[1][1]-C0[1]);if(v>bv){bv=v;best=c}}
+    if(!best)break;const f=best.fit.filter(x=>!used.has(x[0]));f.sort((a,d)=>d[1]-a[1]);best.dk=f[(best.h*f.length)|0]?f[(best.h*f.length)|0][0]:f[0][0];used.add(best.dk);pick.push(best)}
   CZ={key,set:new Map(pick.map(c=>[c.b,c.dk])),vw,vh,C0};return CZ}
-function applyCz(){const cz=buildCz();for(const r of rows)for(const b of r.list){const d=cz.set.get(b);if(d){b.acc=true;b.dk=d;b.on=true;b.czOn=true}else{b.czOn=false;if(Math.abs(b.y+b.h/2-cz.C0[1])<cz.vh*.6&&Math.abs(b.x+b.w/2-cz.C0[0])<cz.vw*.6+70&&b.acc){b.acc=false;b.dk=b.kw}}}}
+function applyCz(){const cz=buildCz();for(const r of rows)for(const b of r.list){const d=cz.set.get(b);if(d){b.acc=true;b.dk=d;b.on=true;b.czOn=true;if(b.tone==null)b.tone=2}else{b.czOn=false;if(Math.abs(b.y+b.h/2-cz.C0[1])<cz.vh*.6&&Math.abs(b.x+b.w/2-cz.C0[0])<cz.vw*.6+70&&b.acc){b.acc=false;b.dk=b.kw}}}}
 const COPY={img:new Image(),b:0,ok:false};
 function copyLoad(src){const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height).data;let b=0;for(let y=c.height-1;y>=0&&!b;y--)for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]>20){b=y+1;break}
   COPY.img=im;COPY.b=b*W/im.width;COPY.ok=true;COPY.h=im.height*W/im.width;if(typeof SNAP!=='undefined'&&S.fc&&!seqT){const c2=fitCam();S.fc=c2;if(S.view!=='close')setCam(c2[0],c2[1],c2[2])}update()};im.src=src}
