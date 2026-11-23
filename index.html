@@ -774,7 +774,8 @@ $('vid').addEventListener('click', async () => {
   if (!type) { toast('이 브라우저는 영상 저장을 지원하지 않아요. 최신 Chrome에서 열어 주세요.'); return; }
   const cycles = cyc() ? jobs.length : 1;
   let src, dur, frameFn = null;
-  if (tab === 0) { const W = win(0).__fd, p = W.o(); dur = (p.morph + p.hold) / 1000 * cycles; src = W.cv; applyJob(0, true); W.setPlaying(true); }
+  if (tab === 0) { const W = win(0).__fd, p = W.o(); dur = (p.morph + p.hold) / 1000 * cycles / (win(0).__SPD || 1); src = W.cv;   // 1편은 재생 속도(60%)만큼 실제 시간이 짧음 → 직무 3개 한 바퀴만
+    sel = 0; persist(); renderJobs(); renderContent(); applyJob(0, true); W.setPlaying(true); }
 
   playing = true; setPlaying(true);
   if (frameFn) frameFn();
@@ -782,7 +783,7 @@ $('vid').addEventListener('click', async () => {
   rec.ondataavailable = e => e.data.size && chunks.push(e.data);
   lock(true, '녹화 중'); rec.start();
   const t0 = performance.now(); let raf;
-  const loop = () => { if (frameFn) frameFn(); const p = (performance.now() - t0) / 1000 / (dur + .3); prog(Math.min(1, p)); $('vid').querySelector('span').textContent = `녹화 중 ${Math.round(Math.min(1, p) * 100)}%`;
+  const loop = () => { if (frameFn) frameFn(); const p = (performance.now() - t0) / 1000 / dur; prog(Math.min(1, p)); $('vid').querySelector('span').textContent = `녹화 중 ${Math.round(Math.min(1, p) * 100)}%`;
     if (p >= 1) { rec.stop(); return; } raf = requestAnimationFrame(loop); };
   raf = requestAnimationFrame(loop);
   rec.onstop = () => { prog(null); lock(false); save(new Blob(chunks, {type: type.split(';')[0]}), fname(type.includes('mp4') ? 'mp4' : 'webm'), 'vid'); };
