@@ -815,7 +815,7 @@ $('seqMp4').onclick=async()=>{if(mp4Busy)return;const msg=t=>$('mp4Msg').textCon
   mp4Busy=true;$('seqMp4').textContent='준비 중…';if(seqT)endSeq();
   try{await loadMux();
     const sc=+$('mp4Res').value,fps=+$('mp4Fps').value,VW=W*sc,VH=H*sc;
-    let cfg=null;for(const codec of ['avc1.640033','avc1.640032','avc1.640028','avc1.4d0033','avc1.42003e']){const c={codec,width:VW,height:VH,bitrate:sc>1?36e6:12e6,framerate:fps};try{const r=await VideoEncoder.isConfigSupported(c);if(r.supported){cfg=c;break}}catch(e){}}
+    let cfg=null;for(const codec of ['avc1.640033','avc1.640032','avc1.640028','avc1.4d0033','avc1.42003e']){const c={codec,width:VW,height:VH,bitrate:sc>1?48e6:16e6,framerate:fps};try{const r=await VideoEncoder.isConfigSupported(c);if(r.supported){cfg=c;break}}catch(e){}}
     if(!cfg)throw new Error('지원되는 H.264 설정이 없어요');
     const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:'avc',width:VW,height:VH,frameRate:fps},fastStart:'in-memory'});
     let encErr=null;const enc=new VideoEncoder({output:(ch,meta)=>muxer.addVideoChunk(ch,meta),error:e=>encErr=e});enc.configure(cfg);

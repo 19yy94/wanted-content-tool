@@ -770,6 +770,14 @@ $('vid').addEventListener('click', async () => {
     ob.observe(m, {childList: true, characterData: true, subtree: true});
     ensureFontSub().catch(() => {}).then(() => d.getElementById('bExp').click()); return;
   }
+  if (tab === 0) {   // 1편: 원본의 프레임 단위 루프 내보내기 (직무 3개 한 바퀴, 끝과 시작이 이어짐)
+    const W = win(0).__fd, d = doc(0); for (const j of jobs.slice(0, 3)) card1(j); W.renderCards();
+    d.getElementById('xres').value = String(1080 * scaleV()); d.getElementById('xcyc').value = '1'; d.getElementById('xfmt').value = 'mp4'; d.getElementById('xfmt').dispatchEvent(new Event('change'));
+    const m = d.getElementById('xmsg'); lock(true, '준비 중'); prog(0);
+    const ob = new MutationObserver(() => { const t = m.textContent, q = t.match(/(\d+)%/); if (q) { const v = /인코딩/.test(t) ? 0.5 + q[1]/200 : q[1]/200; prog(v); $('vid').querySelector('span').textContent = `영상 ${Math.round(v*100)}%`; }
+      if (/완료|저장|못했|못 만들|만들지/.test(t)) { ob.disconnect(); prog(null); lock(false); if (!/완료|저장했어요/.test(t)) toast(t); card1(job()); W.renderCards(); } });
+    ob.observe(m, {childList: true, characterData: true, subtree: true}); d.getElementById('xrec').click(); return;
+  }
   const types = ['video/mp4;codecs=avc1.640033', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'], type = types.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
   if (!type) { toast('이 브라우저는 영상 저장을 지원하지 않아요. 최신 Chrome에서 열어 주세요.'); return; }
   const cycles = cyc() ? jobs.length : 1;

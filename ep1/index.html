@@ -633,6 +633,7 @@ function matchWindow(now, p){
 }
 // integer hash (the old sin-based one correlated along grid columns → visible stripes)
 const cellHash = i => { let h = Math.imul((i|0) ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+let PX = null;
 function step(now, dtFixed){
   CBIAS = +$('cbias').value/100; CDITH = +$('cdith').value/100; TDITH = +$('tdith').value/100; TACC = +$('tacr').value/100; AMIX = +$('amix').value/100;
   const p = o(), dt = dtFixed ?? Math.min(now - last, 50)/1000; last = now; EDT = dt;
@@ -663,7 +664,9 @@ function step(now, dtFixed){
   // while the body whips round, dots flip faster and almost together: the silhouette stays crisp (no smear) and the speed reads
   { const av = Math.abs(angle - (PANG ?? angle)) / Math.max(dt, 1/240); PANG = angle;
     const fast = Math.min(1, av / 4) * (+$('spinCrisp').value/100); p.flip *= 1 - .65*fast; p.rand *= 1 - .85*fast; }
-  turntable.position.x = models && models[poseIdx] ? (models[poseIdx].userData.adj.x || 0)/100 : 0;   // screen-space shift, not orbiting
+  { const tx = models && models[poseIdx] ? (models[poseIdx].userData.adj.x || 0)/100 : 0;   // screen-space shift, not orbiting
+    PX = PX == null ? tx : PX + (tx - PX) * (1 - Math.exp(-Math.max(0, dt) * 5));   // 포즈가 바뀔 때 위치가 툭 튀지 않고 부드럽게 이동
+    turntable.position.x = PX; }
   turntable.scale.setScalar(+$('fscale').value/100); turntable.position.y = +$('fy').value/100;   // framing: leave room for text
   const cutY = +$('cut').value/100; cutPlane.constant = cutY <= -2.49 ? 99 : -cutY;
   $('v_cut').textContent = cutY <= -2.49 ? '끔' : cutY.toFixed(2);
@@ -1189,7 +1192,7 @@ $('xrec').onclick = async () => {
         : new lib.Muxer({ target:new lib.ArrayBufferTarget(), video:{ codec:'avc', width:res, height:resH, frameRate:fps }, fastStart:'in-memory' });
       let encErr = null;
       const enc = new VideoEncoder({ output:(chunk, meta) => muxer.addVideoChunk(chunk, meta), error:e => encErr = e });
-      const bitrate = res >= 2160 ? 60e6 : res >= 1440 ? 36e6 : 24e6;   // higher so the soft glow doesn't band into lines
+      const bitrate = res >= 2160 ? 48e6 : res >= 1440 ? 28e6 : 16e6;   // higher so the soft glow doesn't band into lines
       enc.configure(webm ? { codec:'vp09.00.10.08', width:res, height:resH, framerate:fps, bitrate, alpha:'keep' }
                          : { codec: res > 1920 ? 'avc1.640033' : 'avc1.640028', width:res, height:resH, framerate:fps, bitrate, avc:{ format:'avc' } });
       for(let i=0;i<frames;i++){
@@ -1203,6 +1206,7 @@ $('xrec').onclick = async () => {
     }
     const buf = out, name = `flipdot_loop_${res}x${resH}_${fps}fps${fmt === 'mp4' ? '' : '_alpha'}${layerSel !== 'all' ? '_' + layerSel : ''}.${ext}`;
     EX = null; recording = false; resize(); btn.disabled = false; last = performance.now(); nextAt = last + 500;
+    try { if(document.documentElement.classList.contains('embed') && parent.__offerSave){ msg.textContent = '완료'; parent.__offerSave(new Blob([buf], {type:'video/mp4'}), name, 'vid'); return; } } catch(e){}
     if(!downloadsNS){ msg.textContent = '이 화면에서는 저장할 수 없어요. claude.ai에서 페이지를 열어 주세요.'; window.__lastExport = buf; return; }
     msg.textContent = `저장 확인을 눌러 주세요 (${(buf.byteLength/1e6).toFixed(1)}MB · ${(L/1000).toFixed(1)}초 루프)`;
     try{ await downloadsNS.save({ filename:name, data:new Blob([buf]) }); msg.textContent = `저장했어요: ${name}`; }
