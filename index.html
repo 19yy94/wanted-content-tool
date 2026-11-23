@@ -414,9 +414,9 @@ const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catc
 const saved = store.get(KEY);
 /* 1단계는 원본 카드 4장 그대로 따로 씀 (2·3단계는 6개 직무 공유) */
 const DEF1 = [
-  {name:'UX 리서처', sub:'원티드랩 · 경력 3년 이상', pct:78, pose:0, logo:''},
-  {name:'데이터 분석가', sub:'원티드랩 · 경력 5년 이상', pct:63, pose:1, logo:''},
-  {name:'프로덕트 디자이너', sub:'원티드랩 · 경력 4년 이상', pct:54, pose:2, logo:''}
+  {name:"UX 리서처", sub:"□□코리아 · 경력 3년 이상", pct:54, pose:0, logo:new URL('logos/ux-researcher.png', location.href).href},
+  {name:"데이터 분석가", sub:"△△랩 · 경력 5년 이상", pct:62, pose:1, logo:new URL('logos/data-analyst.png', location.href).href},
+  {name:"프로덕트 디자이너", sub:"○○컴퍼니 · 경력 4년 이상", pct:78, pose:2, logo:new URL('logos/product-designer.png', location.href).href}
 ];
 let J1 = saved?.j1?.length ? saved.j1 : structuredClone(DEF1), J23 = saved?.jobs?.length ? saved.jobs : structuredClone(DEF);
 const SEL = Array.isArray(saved?.selBy) ? saved.selBy : [0, 1, 0];   // 1단계·3단계는 첫 직무부터, 2단계는 프론트엔드 개발자
