@@ -439,7 +439,7 @@
     const zoomOn = $('zoomOn').checked;
     if (!zoomOn && S.ph !== 'spin'){ if (S.hero) S.hero.force = 1; S.ph = 'spin'; S.t = 0; S.hero = null; }
     S.t += dt;
-    const dur = S.ph === 'spin' ? (EXP.on ? EXP.spin : +$('zgap').value + (S.qi < 0 ? 1.6 : 0)) : T[S.ph];   // 맨 처음엔 1.6초 더 돌고 줌
+    const dur = S.ph === 'spin' ? (EXP.on ? EXP.spin : +$('zgap').value + (S.qi < 0 ? 0.6 : 0)) : T[S.ph];   // 맨 처음엔 0.6초 더 돌고 줌
     if (zoomOn && S.t >= dur){
       if (S.ph === 'spin'){
         const q = (S.qi + 1) % nQ();
@@ -852,7 +852,7 @@
   // 한 사이클(구 → 질문 k개 연달아 → 구) 길이
   const cyc = (k, gap) => gap + T.slow + T.zin + k*(T.kw + T.exp + T.hold) + (k-1)*T.pan + T.zout;
   function plan(){
-    const v = Math.max(0.03, +$('speed').value), k = +$('qn').value, gap = +$('zgap').value + 1.6;   // 영상도 첫 줌 전에 1.6초 더 회전 (루프 길이에 포함되니 이음새 그대로)
+    const v = Math.max(0.03, +$('speed').value), k = +$('qn').value, gap = +$('zgap').value + 0.6;   // 영상도 첫 줌 전에 1.6초 더 회전 (루프 길이에 포함되니 이음새 그대로)
     // 프리뷰 그대로: 속도·간격 손대지 않고 질문 k개 분량만 녹화
     if ($('emode').value === 'preview'){
       if (!$('zoomOn').checked) return {v, spin:gap, turns:0, L: 8, preview:true};
