@@ -981,12 +981,15 @@
     if (!('VideoEncoder' in window) || !window.Mp4Muxer){ return recRealtime(); }
     const sc = +$('res').value, EW = Math.round(W*sc), EH = Math.round(H*sc);
     const E = document.createElement('canvas'); E.width = EW; E.height = EH;
-    const ex = E.getContext('2d');
+    const eo = E.getContext('2d'); eo.imageSmoothingQuality = 'high';
+    // 1080 영상은 2배로 그린 뒤 줄여서 저장 → 끈적한 테두리·글자 가장자리가 매끈해짐
+    const SS = sc < 1.5 ? 2 : 1, B = document.createElement('canvas'); B.width = EW*SS; B.height = EH*SS;
+    const ex = B.getContext('2d'), BW = B.width, BH = B.height;
     const GOO = window.NOGOO ? 'none' : 'url(#goo)';
     const fps = 30, k = +$('qn').value, zoomOn = $('zoomOn').checked;
     const L = plan().L, N = Math.round(L*fps), dt = L/N;
     const btn = $('bExp'); btn.disabled = true;
-    setScale(sc);
+    setScale(sc*SS);
     EXP.on = true; EXP.k = zoomOn ? k : QS.length; EXP.miss = false;
     try {
       // 1) 속도 보정: 한 루프에 정확히 2π 회전하도록 두 번 맞춤
@@ -1011,14 +1014,14 @@
       const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), video: {codec:'avc', width:EW, height:EH}, fastStart:'in-memory' });
       let encErr = null;
       const enc = new VideoEncoder({ output: (c, m) => muxer.addVideoChunk(c, m), error: e => encErr = e });
-      let cfg = {codec:'avc1.640028', width:EW, height:EH, bitrate:Math.min(36e6, 10e6*sc*sc), framerate:fps};
+      let cfg = {codec:'avc1.640028', width:EW, height:EH, bitrate:Math.min(36e6, 16e6*sc*sc), framerate:fps};
       for (const c of (EW*EH > 2228224 ? ['avc1.640033','avc1.640034','avc1.4d0033'] : ['avc1.640028','avc1.4d0028'])){
         cfg.codec = c; if ((await VideoEncoder.isConfigSupported(cfg)).supported) break; }
       enc.configure(cfg);
       const backA = +$('back').value;
       await runLoop(N, dt, async i => {
         ex.setTransform(1,0,0,1,0,0); ex.filter = 'none'; ex.globalAlpha = 1;
-        ex.fillStyle = '#14191E'; ex.fillRect(0,0,EW,EH);
+        ex.fillStyle = '#14191E'; ex.fillRect(0,0,BW,BH);
         ex.drawImage(cvg, 0, 0);
         ex.filter = GOO;
         if (backA > 0){ ex.globalAlpha = backA; ex.drawImage(cvb, 0, 0); ex.globalAlpha = 1; }
@@ -1028,8 +1031,9 @@
         ex.drawImage(cvt, 0, 0);
         if (+$('ovt').style.opacity > 0){
           const url = URL.createObjectURL(new Blob([overlaySVG()], {type:'image/svg+xml'}));
-          try { ex.drawImage(await loadImg(url), 0, 0, EW, EH); } finally { URL.revokeObjectURL(url); }
+          try { ex.drawImage(await loadImg(url), 0, 0, BW, BH); } finally { URL.revokeObjectURL(url); }
         }
+        eo.drawImage(B, 0, 0, EW, EH);
         const vf = new VideoFrame(E, {timestamp: Math.round(i*1e6/fps), duration: Math.round(1e6/fps)});
         enc.encode(vf, {keyFrame: i % (fps*2) === 0}); vf.close();
         if (encErr) throw encErr;
