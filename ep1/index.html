@@ -1017,10 +1017,7 @@ function drawCard(now, p){
   if(img){ ctx.fillStyle = '#ffffff'; ctx.fillRect(lx, ly, ls, ls);
     const pad = ls * (+$('logoPad').value/100), box = ls - 2*pad, k = Math.min(box/img.width, box/img.height);   // fit inside, with equal padding on all four sides
     ctx.drawImage(img, lx + (ls - img.width*k)/2, ly + (ls - img.height*k)/2, img.width*k, img.height*k); }
-  else { ctx.fillStyle = '#EEF0F3'; ctx.fillRect(lx, ly, ls, ls);   // 로고 없으면 업로드 아이콘
-    const cx = lx + ls/2, cy = ly + ls/2, u = ls/24; ctx.strokeStyle = '#9AA1AB'; ctx.lineWidth = 1.8*u; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.beginPath(); ctx.moveTo(cx-8*u, cy+2*u); ctx.lineTo(cx-8*u, cy+6*u); ctx.quadraticCurveTo(cx-8*u, cy+8*u, cx-6*u, cy+8*u); ctx.lineTo(cx+6*u, cy+8*u); ctx.quadraticCurveTo(cx+8*u, cy+8*u, cx+8*u, cy+6*u); ctx.lineTo(cx+8*u, cy+2*u); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, cy+3*u); ctx.lineTo(cx, cy-8*u); ctx.moveTo(cx-4.5*u, cy-3.5*u); ctx.lineTo(cx, cy-8*u); ctx.lineTo(cx+4.5*u, cy-3.5*u); ctx.stroke(); }
+  else { ctx.fillStyle = '#d9d9d9'; ctx.fillRect(lx, ly, ls, ls); }   // 로고 없으면 회색 네모
   ctx.restore();
   // sizes fitted to the reference card: the drawn glyph heights match it (title 46, sub 34, number 100, % 38 at 1008px card width)
   ctx.textBaseline = 'alphabetic';
