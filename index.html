@@ -570,7 +570,7 @@ function renderContent(){
       <div class="field fill">
       <div class="qlist" id="fQs">${(j.qs || []).map((p, k) => `<div class="qrow" data-k="${k}"><div class="qhead"><span>질문 ${k + 1}</span><button class="qdel" data-del="${k}" aria-label="질문 ${k + 1} 삭제" title="질문 삭제"><svg class="i"><use href="#i-x"/></svg></button></div><input class="input" data-f="kw" maxlength="12" value="${esc(p.kw)}" placeholder="캡슐 키워드" aria-label="캡슐 키워드 ${k + 1}"><textarea class="input" data-f="q" rows="2" placeholder="면접 질문 (Enter로 줄바꿈)" aria-label="면접 질문 ${k + 1}">${esc(p.q)}</textarea></div>`).join('')}</div>
       <button class="btn tint sm" id="fQAdd" style="margin-top:10px;width:100%;height:40px"><svg class="i"><use href="#i-plus"/></svg>질문 추가</button></div>`; }
-  $('aiBtn').hidden = !(tab > 0); if (!$('aiBtn').disabled) $('aiBtn').title = tab === 1 ? '직무에 맞는 합격 키워드 10개 추천' : '직무에 맞는 면접 질문 3개 추천';
+  $('aiBtn').hidden = !(tab > 0); if (!$('aiBtn').disabled) $('aiBtn').title = tab === 1 ? '직무에 맞는 합격 키워드 10개 추천' : `직무에 맞는 면접 질문 ${Math.min(Math.max(jobs[sel]?.qs?.length || 0, 3), 10)}개 추천`;
   bindContent();
 }
 function bindContent(){
@@ -813,18 +813,20 @@ $('vid').addEventListener('click', async () => {
 let ai = null; try { window.claude?.use?.('sample').then(f => { ai = f; renderContent(); }).catch(() => {}); } catch(e){}
 async function aiFill(k, what){   // what: 'kw' | 'qs' | 'all'
   const j = jobs[k]; if (!ai || !j) return false;
+  const nq = Math.min(Math.max(j.qs ? j.qs.length : 0, 3), 10);   // 질문 칸 수만큼 (최소 3, 최대 10)
   const want = what === 'all' ? 'kw, tag, qs, sub' : what === 'kw' ? 'kw' : 'tag, qs';
   const prompt = `원티드(채용 플랫폼) 캠페인 '합격은 확률이다' 콘텐츠용 데이터를 만들어 줘. 직무: "${j.name}".
 JSON 객체 하나로만 답해. 필요한 키: ${want}.
 - kw: 이 직무 채용 공고·합격 이력서에 자주 나오는 핵심 키워드 10개 (문자열 배열, 각 2~12자, 툴·스킬·역량을 섞고 한국 채용 시장 표기 그대로. 예: "Figma", "A/B 테스트")
 - tag: 원 안에 들어갈 포지션 약어 2~3자 대문자 영문 (예: UX, FE, DA, PM)
-- qs: 이 직무 면접관이 실제로 물을 법한 질문 3개. 각 {"kw": 이력서 키워드 2~8자, "q": 질문}. q는 존댓말 한 문장을 의미 단위로 두 줄로 나눠 "\n"으로 구분, 각 줄 20자 이내, 물음표로 끝.
+- qs: 이 직무 면접관이 실제로 물을 법한 질문 정확히 ${nq}개 (서로 다른 키워드로). 각 {"kw": 이력서 키워드 2~8자, "q": 질문}. q는 존댓말 한 문장을 의미 단위로 두 줄로 나눠 "\n"으로 구분, 각 줄 20자 이내, 물음표로 끝.
 - sub: 카드 둘째 줄 "원티드랩 · 경력 N년 이상" 형식 (N은 이 직무에 흔한 값)
 예: {"kw":["SQL","Python"],"tag":"DA","qs":[{"kw":"리텐션 분석","q":"리텐션 코호트를 어떻게 나눴고,\n그 결과 무엇이 바뀌었나요?"}],"sub":"원티드랩 · 경력 3년 이상"}`;
   const r = await ai.json(prompt, {cache: false});
   if (Array.isArray(r?.kw) && what !== 'qs') j.kw = r.kw.map(String).map(x => x.trim()).filter(Boolean).slice(0, 14);
   if (r?.tag && what !== 'kw') j.tag = String(r.tag).slice(0, 4);
-  if (Array.isArray(r?.qs) && what !== 'kw') j.qs = r.qs.filter(x => x && x.q).map(x => ({kw: String(x.kw || '').slice(0, 12), q: String(x.q).replace(/\\n/g, '\n')})).slice(0, 6);
+  if (Array.isArray(r?.qs) && what !== 'kw') j.qs = r.qs.filter(x => x && x.q).map(x => ({kw: String(x.kw || '').slice(0, 12), q: String(x.q).replace(/\\n/g, '\n')}))
+    .slice(0, nq);
   if (r?.sub && what === 'all') j.sub = String(r.sub).slice(0, 30);
   persist(); return true;
 }
